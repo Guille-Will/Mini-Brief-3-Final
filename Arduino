@@ -1,0 +1,77 @@
+#include <Adafruit_LiquidCrystal.h>
+
+// LAT pin (chip select)
+Adafruit_LiquidCrystal lcd(7);
+
+String incoming = "";
+String currentWord = "";
+
+int score = 0;
+
+void setup() {
+  Serial.begin(9600);
+
+  lcd.begin(16, 2);
+  lcd.setBacklight(HIGH);
+
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("ML Ready");
+}
+
+void loop() {
+
+  if (Serial.available()) {
+
+    incoming = Serial.readStringUntil('\n');
+    incoming.trim();
+
+    // NEW WORD RECEIVED
+    if (incoming.startsWith("WORD:")) {
+
+      currentWord = incoming.substring(5);
+
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print(currentWord);
+    }
+
+    // CORRECT DETECTION
+    else if (incoming.startsWith("CORRECT:")) {
+
+      score++;
+
+      lcd.setCursor(0, 1);
+      lcd.print("  CORRECT!   ");
+
+      delay(1000);
+
+      // AFTER 3 CORRECT ANSWERS
+      if (score >= 3) {
+
+        lcd.clear();
+        lcd.setCursor(0, 0);
+        lcd.print("Congratulations");
+        lcd.setCursor(0, 1);
+        lcd.print("Well Done!");
+
+        delay(3000);
+
+        lcd.clear();
+        lcd.setCursor(0, 0);
+        lcd.print("See You");
+        lcd.setCursor(0, 1);
+        lcd.print("Tomorrow");
+
+        delay(2000);
+
+        score = 0; // reset
+      }
+
+      // SHOW CURRENT WORD AGAIN
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print(currentWord);
+    }
+  }
+}
